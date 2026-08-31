@@ -1,0 +1,86 @@
+name: Angel Memory Cary release gate
+
+on:
+  push:
+    branches:
+      - "cary/1.6.1"
+  pull_request:
+    branches:
+      - "cary/1.6.1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: angel-memory-cary-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-regression:
+    name: Security regression (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Reject committed runtime environments and bytecode
+        shell: bash
+        run: |
+          set -euo pipefail
+          bad_paths="$(
+            find . \
+              -path './.git' -prune -o \
+              \( -name '.venv' -o -name '.venv_*' -o -name 'venv' -o -name 'node_modules' -o -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' \) \
+              -print
+          )"
+          if [[ -n "${bad_paths}" ]]; then
+            printf 'Forbidden generated paths are committed:\n%s\n' "${bad_paths}"
+            exit 1
+          fi
+
+      - name: Verify Cary release metadata
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          text = Path("metadata.yaml").read_text(encoding="utf-8")
+          fields = {}
+          for raw_line in text.splitlines():
+              if ":" not in raw_line or raw_line.lstrip().startswith("#"):
+                  continue
+              key, value = raw_line.split(":", 1)
+              fields[key.strip()] = value.strip().strip('"').strip("'")
+
+          assert fields.get("name") == "astrbot_plugin_angel_memory"
+          assert fields.get("version") == "1.6.1+cary.1"
+          assert re.fullmatch(r"\d+\.\d+\.\d+\+cary\.\d+", fields["version"])
+          assert fields.get("repo") == "https://github.com/casama233/astrbot_plugin_angel_memory"
+          assert "casama233" in fields.get("author", "")
+
+      - name: Compile Python sources
+        run: python -m compileall -q core llm_memory tools web_api tests main.py
+
+      - name: Run P0 and P1 isolation regressions
+        run: |
+          python -m unittest discover -s tests -p 'test_p0_memory_isolation.py' -v
+          python -m unittest discover -s tests -p 'test_p0_note_api_containment.py' -v
+          python -m unittest discover -s tests -p 'test_p1_scoped_backup.py' -v
+          python -m unittest discover -s tests -p 'test_p1_scoped_notes.py' -v
+          python -m unittest discover -s tests -p 'test_p1_scoped_notes_hardening.py' -v
+          python -m unittest discover -s tests -p 'test_p1_scoped_notes_runtime.py' -v
