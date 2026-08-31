@@ -38,7 +38,13 @@
     "editor_mode": true,
     "editor_language": "json",
     "editor_theme": "vs-dark",
-    "hint": "键为人格名（优先匹配）或会话ID，值为记忆分类域；未命中时默认 public。scope 名仅允许字母、数字、中文、下划线和短横线。"
+    "hint": "键为人格名（优先匹配）或会话ID，值为记忆分类域；未命中且未配置显式默认域时会拒绝记忆读写（fail closed），不会自动进入 public。可在 JSON 中使用 __default__，或配置下方的显式默认记忆域。scope 名仅允许字母、数字、中文、下划线和短横线。"
+  },
+  "default_memory_scope": {
+    "type": "string",
+    "description": "[记忆分类] 未命中映射时的显式默认记忆域",
+    "default": "",
+    "hint": "安全默认值为空：人格/会话没有命中 conversation_scope_map 时拒绝记忆读写。只有明确希望所有未映射会话进入公共记忆时才填写 public。"
   },
   "memory_behavior": {
     "type": "object",
