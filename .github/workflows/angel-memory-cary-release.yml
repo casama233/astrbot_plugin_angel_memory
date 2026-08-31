@@ -69,7 +69,7 @@ jobs:
               fields[key.strip()] = value.strip().strip('"').strip("'")
 
           assert fields.get("name") == "astrbot_plugin_angel_memory"
-          assert fields.get("version") == "1.6.1+cary.1"
+          assert fields.get("version") == "1.6.1+cary.2"
           assert re.fullmatch(r"\d+\.\d+\.\d+\+cary\.\d+", fields["version"])
           assert fields.get("repo") == "https://github.com/casama233/astrbot_plugin_angel_memory"
           assert "casama233" in fields.get("author", "")
@@ -80,7 +80,9 @@ jobs:
       - name: Run P0 and P1 isolation regressions
         run: |
           python -m unittest discover -s tests -p 'test_p0_memory_isolation.py' -v
+          python -m unittest discover -s tests -p 'test_p0_vector_scope_hardening.py' -v
           python -m unittest discover -s tests -p 'test_p0_note_api_containment.py' -v
+          python -m unittest discover -s tests -p 'test_p1_scoped_identity.py' -v
           python -m unittest discover -s tests -p 'test_p1_scoped_backup.py' -v
           python -m unittest discover -s tests -p 'test_p1_scoped_notes.py' -v
           python -m unittest discover -s tests -p 'test_p1_scoped_notes_hardening.py' -v
