@@ -3,10 +3,11 @@ name: Angel Memory Cary release gate
 on:
   push:
     branches:
+      - "master"
       - "cary/1.6.1"
   pull_request:
     branches:
-      - "cary/1.6.1"
+      - "master"
   workflow_dispatch:
 
 permissions:
