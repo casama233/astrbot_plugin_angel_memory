@@ -1,5 +1,7 @@
 # Angel Memory - AI记忆与认知系统
 
+**简体中文** · [繁體中文](README.zh-TW.md) · [English](README.en.md)
+
 > **为AstrBot赋予真正的记忆能力**：让AI不仅能记住，还能主动思考、自主进化
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
